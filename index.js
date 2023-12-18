@@ -24,10 +24,20 @@ app.get("/api/hello", function (req, res) {
   res.json({ greeting: "hello API" });
 });
 
+app.enable("trust proxy"); // Only if you're sure you're behind a reverse proxy
+
 app.get("/api/whoami", function (req, res) {
-  const ipaddress = req.ip; // IP address of the client
-  const language = req.get("Accept-Language"); // Preferred languages of the client
-  const software = req.get("User-Agent"); // Information about the client's software
+  let ipaddress =
+    req.headers["x-forwarded-for"] ||
+    req.headers["x-real-ip"] ||
+    req.headers["x-client-ip"] ||
+    req.socket.remoteAddress;
+  console.log(ipaddress);
+  const language = req.get("Accept-Language");
+  const software = req.get("User-Agent");
+
+  // Split by comma and take the first value (in case of multiple IPs)
+  ipaddress = ipaddress.split(",")[0];
 
   res.json({ ipaddress, language, software });
 });
